@@ -21,23 +21,30 @@ public:
       endwin();           // End ncurses
    }
 
-   void update(int value)
+   void update(int value, const std::string& statusText = "")
    {
       if (value < 0) value = 0;
       if (value > maxProgress) value = maxProgress;
       progress = value;
 
-      // Clear the entire line (overwrite with spaces)
-      mvprintw(0, 0, "%s", std::string(maxProgress + 7, ' ').c_str());
+        // ----- Draw status line -----
+        // Clear previous status text by overwriting with spaces
+        int clearWidth = maxProgress + 20;
+        mvprintw(0, 0, "%s", std::string(clearWidth, ' ').c_str());
+        mvprintw(0, 0, "%s", statusText.c_str());
+
+      // ----- Draw progress bar -----
+      // Clear progress bar line
+      mvprintw(1, 0, "%s", std::string(maxProgress + 7, ' ').c_str());
 
       // Draw the filled portion
       for (int j = 0; j < progress; ++j)
       {
-         mvaddch(0, j, '#'); 
+         mvaddch(1, j, '#');
       }
 
       // Percentage display
-      mvprintw(0, maxProgress + 2, "%3d%%", (progress * 100) / maxProgress);
+      mvprintw(1, maxProgress + 2, "%3d%%", (progress * 100) / maxProgress);
 
       refresh();
    }
@@ -55,7 +62,7 @@ int main()
 
       for (int i = 0; i <= progBar_maxProgress; ++i)
       {
-         bar.update(i);
+         bar.update(i, "Status Text - " + std::to_string(i));
          std::this_thread::sleep_for(std::chrono::milliseconds(250));
       }
    }
