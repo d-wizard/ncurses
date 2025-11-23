@@ -27,11 +27,11 @@ public:
       if (value > maxProgress) value = maxProgress;
       progress = value;
 
-        // ----- Draw status line -----
-        // Clear previous status text by overwriting with spaces
-        int clearWidth = maxProgress + 20;
-        mvprintw(0, 0, "%s", std::string(clearWidth, ' ').c_str());
-        mvprintw(0, 0, "%s", statusText.c_str());
+      // ----- Draw status line -----
+      // Clear previous status text by overwriting with spaces
+      int clearWidth = maxProgress + 20;
+      mvprintw(0, 0, "%s", std::string(clearWidth, ' ').c_str());
+      mvprintw(0, 0, "%s", statusText.c_str());
 
       // ----- Draw progress bar -----
       // Clear progress bar line
