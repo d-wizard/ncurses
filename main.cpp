@@ -1,33 +1,66 @@
-#include <iostream>
 #include <ncurses.h>
-#include <thread> // For usleep
+#include <string>
+#include <thread>
+#include <chrono>
+
+class NcursesProgressBar
+{
+public:
+   NcursesProgressBar(int maxProgress)
+      : maxProgress(maxProgress)
+   {
+      initscr();          // Start ncurses
+      curs_set(0);        // Hide cursor
+      noecho();
+      progress = 0;
+   }
+
+   ~NcursesProgressBar()
+   {
+      //   getch();            // Wait for a key
+      endwin();           // End ncurses
+   }
+
+   void update(int value)
+   {
+      if (value < 0) value = 0;
+      if (value > maxProgress) value = maxProgress;
+      progress = value;
+
+      // Clear the entire line (overwrite with spaces)
+      mvprintw(0, 0, "%s", std::string(maxProgress + 7, ' ').c_str());
+
+      // Draw the filled portion
+      for (int j = 0; j < progress; ++j)
+      {
+         mvaddch(0, j, '#'); 
+      }
+
+      // Percentage display
+      mvprintw(0, maxProgress + 2, "%3d%%", (progress * 100) / maxProgress);
+
+      refresh();
+   }
+
+   private:
+   int maxProgress;
+   int progress;
+};
 
 int main()
 {
-   initscr(); // Initialize ncurses
-   curs_set(0); // Hide the cursor
+   { // Make scope for NcursesProgressBar
+      int progBar_maxProgress = 64;
+      NcursesProgressBar bar(progBar_maxProgress);
 
-   int max_progress = 50;
-   for (int i = 0; i <= max_progress; ++i)
-   {
-      // Clear the line for redraw
-      mvprintw(0, 0, "%s", std::string(max_progress + 7, ' ').c_str());
-
-      // Draw the filled part of the bar
-      for (int j = 0; j < i; ++j)
+      for (int i = 0; i <= progBar_maxProgress; ++i)
       {
-         mvaddch(0, j, '#');
+         bar.update(i);
+         std::this_thread::sleep_for(std::chrono::milliseconds(250));
       }
-
-      // Display percentage
-      mvprintw(0, max_progress + 2, "%3d%%", (i * 100) / max_progress);
-
-      refresh(); // Update the screen
-      std::this_thread::sleep_for(std::chrono::milliseconds(50));
    }
 
-   getch(); // Wait for a key press before exiting
-   endwin(); // End ncurses
+   std::this_thread::sleep_for(std::chrono::milliseconds(5000));
 
-   return 0;
+   return 0;   // Destructor handles cleanup
 }
