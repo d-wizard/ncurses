@@ -18,22 +18,52 @@
  */
 #include <thread>
 #include <chrono>
+#include <random>
+#include <type_traits>
 #include "NcursesProgressBar.h"
+#include "DetermineDataType.h"
+
+template <typename T>
+T randomInRange(T minVal, T maxVal)
+{
+   static std::random_device rd;
+   static std::mt19937_64 gen(rd());
+
+   if constexpr (std::is_integral_v<T>)
+   {
+      std::uniform_int_distribution<T> dist(minVal, maxVal);
+      return dist(gen);
+   }
+   else if constexpr (std::is_floating_point_v<T>)
+   {
+      std::uniform_real_distribution<T> dist(minVal, maxVal);
+      return dist(gen);
+   }
+   else {
+      static_assert(std::is_arithmetic_v<T>,
+         "randomInRange<T>: T must be arithmetic (int, float, double, etc).");
+   }
+}
+
+////////////////////////////////////////////////////////////////////////////////
 
 int main()
 {
-   { // Make scope for NcursesProgressBar
-      int progBar_maxProgress = 64;
-      NcursesProgressBar bar(progBar_maxProgress);
+   typedef uint64_t testType;
+   static constexpr testType maxVal = 200;
+   static constexpr testType minVal = 0;//-maxVal;
 
-      for (int i = 0; i <= progBar_maxProgress; ++i)
-      {
-         bar.update(i, "Status Text - " + std::to_string(i));
-         std::this_thread::sleep_for(std::chrono::milliseconds(250));
-      }
+   static constexpr int NUM_VALS = 1e6;
+   std::vector<testType> testData(NUM_VALS);
+   for(size_t i = 0; i < NUM_VALS; ++i)
+   {
+      testData[i] = randomInRange(minVal, maxVal);
    }
 
-   std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+   DetermineDataType ddt;
+   ddt.addChunk(testData.data(), NUM_VALS*sizeof(testType));
+   ddt.getBestType();
+
 
    return 0;   // Destructor handles cleanup
 }

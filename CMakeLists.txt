@@ -29,7 +29,7 @@ set(c_cppFlags
 
 # Flags for just C++
 set(cppOnlyFlags
-   -std=c++14)
+   -std=c++17)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
    list(APPEND c_cppFlags -Wno-unused-variable)
